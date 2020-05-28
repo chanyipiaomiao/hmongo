@@ -22,7 +22,7 @@ type Index struct {
 	Unique bool
 }
 
-type Option struct {
+type Config struct {
 	Url         string `json:"url"`
 	DBName      string `json:"db_name"`
 	User        string `json:"user"`
@@ -32,7 +32,7 @@ type Option struct {
 
 type MClient struct {
 	DB     *mongo.Database
-	Option *Option
+	Config *Config
 }
 
 func makeIndex(c *mongo.Collection, index *Index) error {
@@ -65,30 +65,35 @@ func makeIndex(c *mongo.Collection, index *Index) error {
 	return nil
 }
 
-func Init(option *Option) (*MClient, error) {
+func Init(cfg *Config, indexes ...Index) (*MClient, error) {
+	var (
+		clientOptions options.ClientOptions
+		client        *mongo.Client
+		err           error
+	)
 
-	opts := options.ClientOptions{}
-	if len(option.User) > 0 {
-		opts.SetAuth(options.Credential{
+	clientOptions = options.ClientOptions{}
+	if len(cfg.User) > 0 {
+		clientOptions.SetAuth(options.Credential{
 			AuthMechanism: "SCRAM-SHA-1",
-			AuthSource:    option.DBName,
-			Username:      option.User,
-			Password:      option.Password,
+			AuthSource:    cfg.DBName,
+			Username:      cfg.User,
+			Password:      cfg.Password,
 		})
 	}
 
-	opts.ApplyURI(option.Url)
-	opts.SetHeartbeatInterval(3 * time.Second)
-	opts.SetSocketTimeout(3 * time.Second)
-	opts.SetConnectTimeout(3 * time.Second)
-	opts.SetMaxPoolSize(option.MaxPoolSize)
+	clientOptions.ApplyURI(cfg.Url)
+	clientOptions.SetHeartbeatInterval(3 * time.Second)
+	clientOptions.SetSocketTimeout(3 * time.Second)
+	clientOptions.SetConnectTimeout(3 * time.Second)
+	clientOptions.SetMaxPoolSize(cfg.MaxPoolSize)
 
-	client, err := mongo.Connect(context.Background(), &opts)
+	client, err = mongo.Connect(context.Background(), &clientOptions)
 	if err != nil {
 		return nil, fmt.Errorf("connect mongo server with official sdk failed: %v\n", err)
 	}
 
-	hClient := &MClient{DB: client.Database(option.DBName), Option: option}
+	hClient := &MClient{DB: client.Database(cfg.DBName), Config: cfg}
 	return hClient, nil
 }
 
