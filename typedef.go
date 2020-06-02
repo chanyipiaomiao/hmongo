@@ -20,7 +20,7 @@ type Config struct {
 	DBName      string `json:"db_name"`
 	User        string `json:"user"`
 	Password    string `json:"password"`
-	MaxPoolSize uint64 `json:"max_pool_size"`
+	MaxPoolSize int    `json:"max_pool_size"`
 }
 
 // InsertOneResult is the result type returned by an InsertOne operation.

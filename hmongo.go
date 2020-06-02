@@ -74,7 +74,7 @@ func Init(cfg *Config, indexes ...Index) error {
 	clientOptions.SetHeartbeatInterval(3 * time.Second)
 	clientOptions.SetSocketTimeout(3 * time.Second)
 	clientOptions.SetConnectTimeout(3 * time.Second)
-	clientOptions.SetMaxPoolSize(cfg.MaxPoolSize)
+	clientOptions.SetMaxPoolSize(uint64(cfg.MaxPoolSize))
 
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	mongoClient, err = mongo.Connect(ctx, &clientOptions)
